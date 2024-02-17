@@ -3,20 +3,33 @@ import { drawScene } from "./draw_scene.js";
 
 const vsSource = `
 attribute vec4 aVertexPosition;
+attribute vec2 aTextureCoord;
+
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
 
+varying highp vec2 vTextureCoord;
+
 void main()
 {
-    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+    // gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+    gl_Position = vec4(aVertexPosition.x, aVertexPosition.y, 0, 1);;
+    vTextureCoord = aTextureCoord;
 }
 `;
 
 
 const fsSource = `
+varying highp vec2 vTextureCoord;
+uniform ivec2 iResolution;
+uniform lowp vec3 baseColor;
+
+
 void main()
 {
-    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    gl_FragColor = vec4(baseColor.x + 0.5*vTextureCoord.x,
+                        baseColor.y + 0.5*vTextureCoord.y,
+                        baseColor.z, 1.0);
 }
 `;
 
@@ -76,19 +89,41 @@ function main()
 
     const programInfo = {
         program: shaderProgram,
-        attibLocations: {
+        attribLocations: {
             vertexPosition: gl.getAttribLocation(shaderProgram,
                                                 "aVertexPosition"),
+            textureCoord: gl.getAttribLocation(shaderProgram,
+                                                "aTextureCoord"),
         },
         uniformLocations: {
             projectionMatrix: gl.getUniformLocation(shaderProgram,
                                                     "uProjectionMatrix"),
             modelViewMatrix: gl.getUniformLocation(shaderProgram,
                                                     "uModelViewMatrix"),
+            iResolution: gl.getUniformLocation(shaderProgram,
+                                                    "iResolution"),
+            baseColor: gl.getUniformLocation(shaderProgram,
+                                                    "baseColor"),
         },
     };
 
+
     const buffers = initBuffers(gl);
+
+    let then = 0;
+    let t_start = -6000.0;
+
+    function render(now)
+    {
+        now *= 0.001;
+        let dt = now - then;
+        then = now;
+
+        drawScene(gl, programInfo, buffers, now, dt);
+
+        requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);
     
-    drawScene(gl, programInfo, buffers);
+    // drawScene(gl, programInfo, buffers);
 }

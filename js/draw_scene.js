@@ -1,4 +1,4 @@
-function drawScene(gl, programInfo, buffers)
+function drawScene(gl, programInfo, buffers, t)
 {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clearDepth(1.0);
@@ -17,16 +17,22 @@ function drawScene(gl, programInfo, buffers)
 
     const modelViewMatrix = mat4.create();
 
-    mat4.translate(modelViewMatrix, modeViewMatrix, [0.0, 0.0, -6.0],);
+    mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -6.0],);
 
     setPositionAttribute(gl, buffers, programInfo);
+    setTextureAttribute(gl, buffers, programInfo);
 
     gl.useProgram(programInfo.program);
 
     gl.uniformMatrix4fv(
-        programInfo.uniformLocation.projectionMatrix, false, projectionMatrix,);
+        programInfo.uniformLocations.projectionMatrix, false, projectionMatrix,);
     gl.uniformMatrix4fv(
-        programInfo.uniformLocation.modelViewMatrix, false, modelViewMatrix,);
+        programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix,);
+
+    gl.uniform2i(
+        programInfo.uniformLocations.iResolution, 640, 480);
+    gl.uniform3f(
+        programInfo.uniformLocations.baseColor, 0.5, 0.5, 0.5*(Math.sin(t)+1));
 
     {
         const offset = 0;
@@ -42,8 +48,8 @@ function setPositionAttribute(gl, buffers, programInfo)
     const normalize = false;
     const stride = 0;
     const offset = 0;
-    gl.BindBuffer(gl.ARRAY_BUFFER);
-    gl.vertexAttripPointer(
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+    gl.vertexAttribPointer(
         programInfo.attribLocations.vertexPosition,
         numComponents,
         type,
@@ -51,7 +57,22 @@ function setPositionAttribute(gl, buffers, programInfo)
         stride,
         offset,
     );
-    glEnableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+    gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
 }
+
+function setTextureAttribute(gl, buffers, programInfo)
+{
+    const num = 2;
+    const type = gl.FLOAT;
+    const normalize = false;
+    const stride = 0;
+    const  offset = 0;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texCoord);
+    gl.vertexAttribPointer(
+        programInfo.attribLocations.textureCoord,
+        num, type, normalize, stride, offset,);
+    gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
+}
+
 
 export { drawScene };
