@@ -29,22 +29,51 @@ uniform vec2 resolution;
 uniform vec3 baseColor;
 uniform float time;
 
+float linesegment_sdf(vec2 p, vec2 a, vec2 b)
+{
+    vec2 ba = b - a;
+    vec2 pa = p - a;
+    float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+    return length(pa - h * ba);
+}
+
+float z_sdf(vec2 p, vec2 a, vec2 b)
+{
+    vec2 dx = vec2(b.x - a.x, 0.0);
+
+    float s = linesegment_sdf(p, a, a + dx);
+    s = min(s, linesegment_sdf(p, b, b - dx));
+    s = min(s, linesegment_sdf(p, a, b));
+
+    return s;
+}
+
+mat2 rotate2D(float phi)
+{
+    return mat2(cos(phi), sin(phi), -sin(phi), cos(phi));
+}
+
 void main()
 {
     vec3 pos = vec3((UV.x-0.5) * resolution.x
                              / resolution.y, 
                           UV.y - 0.5, 0.0);
-    
 
-    float kx = 2.0*PI;
-    float ky = 2.0*PI;
-    float omega = 2.0*PI;
-    float amp = sin(kx*pos.x) * sin(ky*pos.y - omega*time);
-    float w = amp*amp;
 
-    gl_FragColor = vec4(w*baseColor.x + 0.5*UV.x,
-                        w*baseColor.y + 0.5*UV.y,
-                        w*baseColor.z, 1.0);
+    mat2 m = rotate2D(time);
+    vec2 za = vec2(-0.2, -0.3);
+    vec2 zb = vec2(0.2, 0.3);
+    float thickness = 0.1;
+
+    float s = z_sdf(pos.xy, za, zb) - thickness;
+
+    float phase = 2.0*time;
+
+    float v = clamp(cos(100.0*s - phase), 0.0, 1.0) * exp(-4.0*abs(s));
+
+    gl_FragColor = vec4(v,
+                        v,
+                        v, 1.0);
 
 }
 `;
