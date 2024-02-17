@@ -29,10 +29,12 @@ function drawScene(gl, programInfo, buffers, t)
     gl.uniformMatrix4fv(
         programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix,);
 
-    gl.uniform2i(
-        programInfo.uniformLocations.iResolution, 640, 480);
+    gl.uniform2f(
+        programInfo.uniformLocations.resolution, 640.0, 480.0);
     gl.uniform3f(
         programInfo.uniformLocations.baseColor, 0.5, 0.5, 0.5*(Math.sin(t)+1));
+    gl.uniform1f(
+        programInfo.uniformLocations.time, t);
 
     {
         const offset = 0;

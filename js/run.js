@@ -8,28 +8,44 @@ attribute vec2 aTextureCoord;
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
 
-varying highp vec2 vTextureCoord;
+varying highp vec2 UV;
 
 void main()
 {
     // gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
     gl_Position = vec4(aVertexPosition.x, aVertexPosition.y, 0, 1);;
-    vTextureCoord = aTextureCoord;
+    UV = aTextureCoord;
 }
 `;
 
 
 const fsSource = `
-varying highp vec2 vTextureCoord;
-uniform ivec2 iResolution;
-uniform lowp vec3 baseColor;
+precision highp float;
 
+#define PI 3.14159265359
+
+varying highp vec2 UV;
+uniform vec2 resolution;
+uniform vec3 baseColor;
+uniform float time;
 
 void main()
 {
-    gl_FragColor = vec4(baseColor.x + 0.5*vTextureCoord.x,
-                        baseColor.y + 0.5*vTextureCoord.y,
-                        baseColor.z, 1.0);
+    vec3 pos = vec3((UV.x-0.5) * resolution.x
+                             / resolution.y, 
+                          UV.y - 0.5, 0.0);
+    
+
+    float kx = 2.0*PI;
+    float ky = 2.0*PI;
+    float omega = 2.0*PI;
+    float amp = sin(kx*pos.x) * sin(ky*pos.y - omega*time);
+    float w = amp*amp;
+
+    gl_FragColor = vec4(w*baseColor.x + 0.5*UV.x,
+                        w*baseColor.y + 0.5*UV.y,
+                        w*baseColor.z, 1.0);
+
 }
 `;
 
@@ -100,10 +116,12 @@ function main()
                                                     "uProjectionMatrix"),
             modelViewMatrix: gl.getUniformLocation(shaderProgram,
                                                     "uModelViewMatrix"),
-            iResolution: gl.getUniformLocation(shaderProgram,
-                                                    "iResolution"),
+            resolution: gl.getUniformLocation(shaderProgram,
+                                                    "resolution"),
             baseColor: gl.getUniformLocation(shaderProgram,
                                                     "baseColor"),
+            time: gl.getUniformLocation(shaderProgram,
+                                                    "time"),
         },
     };
 
