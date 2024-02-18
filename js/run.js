@@ -64,16 +64,23 @@ void main()
     vec2 za = vec2(-0.2, -0.3);
     vec2 zb = vec2(0.2, 0.3);
     float thickness = 0.1;
+    float phi = atan(pos.y, pos.x);
 
     float s = z_sdf(pos.xy, za, zb) - thickness;
 
-    float phase = 2.0*time;
+    float noise1 = s * 0.4 * (sin(20.0*PI*phi) + cos(14.0*PI*phi));
+    float noise2 = s * 0.6 * (sin(16.0*PI*phi) + cos(4.0*PI*phi));
+    
+    float phase1 = 2.0*time + noise1;
+    float phase2 = 2.2*time + noise2;
 
-    float v = clamp(cos(100.0*s - phase), 0.0, 1.0) * exp(-4.0*abs(s));
 
-    gl_FragColor = vec4(v,
-                        v,
-                        v, 1.0);
+    float v1 = clamp(cos(100.0*s - phase1), 0.0, 1.0) * exp(-4.0*abs(s));
+    float v2 = clamp(cos(100.0*s - phase2), 0.0, 1.0) * exp(-4.0*abs(s));
+
+    gl_FragColor = vec4(v1,
+                        v2,
+                        v2, 1.0);
 
 }
 `;
